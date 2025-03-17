@@ -21,9 +21,12 @@ logger = logging.getLogger(__name__)
 class ConfclassesLoadingError(Exception):
     pass
 
-def confclass(cls=None):
+def confclass(cls=None, /, *, safe=True):
     """
     A simplified version of dataclass decorator, allowing shorthand notation.
+
+    Args:
+        safe (bool): If we should stop access to read values before load_config is called. Be careful with this.
 
     Example:
     ```python
@@ -43,14 +46,18 @@ def confclass(cls=None):
                 setattr(cls, name, dataclasses.field(default_factory=lambda: type()))
             # auto create a default_factory if needed
             elif default is not dataclasses.MISSING and default.__class__.__hash__ is None:
-                setattr(cls, name, dataclasses.field(default_factory=_copy(default)))
+                if is_confclass(default):
+                    setattr(cls, name, dataclasses.field(default_factory=lambda: default))
+                else:
+                    setattr(cls, name, dataclasses.field(default_factory=default.copy))
 
         # save the dataclass init for later
         cls = dataclasses.dataclass(cls)
         setattr(cls, "__dataclass_init__", cls.__init__)
         setattr(cls, "__init__", _init)
         setattr(cls, _LOADED, False)
-        setattr(cls, "__getattribute__", _getattribute)
+        if safe:
+            setattr(cls, "__getattribute__", _getattribute)
 
         return cls
 
@@ -60,16 +67,12 @@ def confclass(cls=None):
     return wrap(cls)
 
 
-def _copy(obj):
-    def factory():
-        if is_confclass(obj):
-            return obj.__class__(*obj.__confclass_args__, **obj.__confclass_kwargs__)
-        else:
-            return obj.copy()
-    return factory
-
 _LOADED = "__CONFIGCLASSES_LOADED__"
 def _getattribute(config, name):
+    """
+    The purpose for this override function is to block lookups before it is loaded.
+
+    """
     if name.startswith('__'):
         return object.__getattribute__(config, name)
     
@@ -105,7 +108,7 @@ def get_docstrings(cls):
     """
     Returns a mapping of attribute name to docstring, uses ast and inspect. I have
     used the same documenting standards that most IDEs support rather than a true
-    python approach. This can be reworked but a proper standard emerges from python.
+    python approach. This can be reworked if a proper standard emerges from python.
 
     Args:
         obj (object|type): the object or type to inspect
@@ -123,16 +126,16 @@ def get_docstrings(cls):
     for i, item in enumerate(body):
         if i == 0:
             continue
-        if isinstance(item, ast.Expr):
-            if isinstance(body[i - 1], ast.AnnAssign):
+        if isinstance(item, ast.Expr): # If the docstring
+            if isinstance(body[i - 1], ast.AnnAssign): # If previous line was an annotation
                 mapping[body[i - 1].target.id] = item.value.value
     return mapping
 
 TYPE_MAPPING = {
-    str: "Text",
-    int: "Number",
-    float: "Decimal",
-    bool: "Yes/No",
+    str: "String",
+    int: "Integer",
+    float: "Float",
+    bool: "Bool",
 }
 
 def add_comments(data, cls, indent=0):

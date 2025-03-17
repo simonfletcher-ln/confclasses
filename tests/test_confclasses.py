@@ -40,6 +40,21 @@ def test_error_pre_load(test_config):
     with pytest.raises(ConfclassesLoadingError):
         conf.nested.field1
 
+def test_unsafe(test_config):
+    """ in the case safe=False, we do the opposit of the above test """
+    @confclass(safe=False)
+    class UnsafeTestConfig():
+        nested_safe: test_config
+        field: int = 22
+    
+    conf = UnsafeTestConfig()
+    _ = conf.field
+
+    with pytest.raises(AttributeError):
+        _ = conf.nested_safe.field3
+    
+    load_config(conf, "")
+
 def test_hashing(test_config):
     """ Make sure hashed fields do not polute """
     conf1 = test_config()
@@ -50,7 +65,8 @@ def test_hashing(test_config):
     conf1.hashed_field1.append("new")
     assert len(conf2.hashed_field1) == 2
 
-def test_none_defaults(test_config):
+def test_init_defaults(test_config):
+    """ Make sure if nested has defaults passed in from parent definition """
     conf = test_config()
 
     load_config(conf, "")
@@ -97,14 +113,59 @@ hashed_field4:
 """
 
 def test_save_comments(test_config):
-    @confclass
-    class SmallExample:
-        foo: str = "test"
-    
-    conf = SmallExample()
+    conf = test_config()
     load_config(conf, "")
     assert save_config(conf, True) == """
-# === foo ===
-# type: Text
-foo: test
+# === nested ===
+# type: NestedConfig
+nested:
+
+  # === field1 ===
+  # type: String
+  field1: foo
+
+  # === field2 ===
+  # type: String
+  # test document for field 2
+  field2: bar
+
+  # === hashed_field3 ===
+  # type: RepeatingConfig
+  hashed_field3:
+
+    # === test ===
+    # type: String
+    test: nested
+
+    # === default1 ===
+    # type: Integer
+    default1: 123
+
+# === field3 ===
+# type: Integer
+# test document for field 3
+field3: 42
+
+# === hashed_field1 ===
+# type: list
+hashed_field1:
+- test
+- items
+
+# === hashed_field2 ===
+# type: dict
+hashed_field2:
+  key1: value1
+
+# === hashed_field4 ===
+# type: RepeatingConfig
+hashed_field4:
+
+  # === test ===
+  # type: String
+  test: base
+
+  # === default1 ===
+  # type: Integer
+  default1: 123
 """
