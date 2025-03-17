@@ -44,7 +44,7 @@ def test_unsafe(test_config):
     """ in the case safe=False, we do the opposit of the above test """
     @confclass(safe=False)
     class UnsafeTestConfig():
-        nested_safe: test_config
+        nested_safe: test_config # type: ignore
         field: int = 22
     
     conf = UnsafeTestConfig()
