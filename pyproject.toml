@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "confclasses"
+version = "0.1.2"
+authors = [
+  { name="Simon Fletcher", email="simon.fletcher@lexisnexisrisk.com" },
+]
+description = "A simple wrapper around dataclasses, for general configuration"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "PyYAML"
+]
+
+[project.license]
+file = "LICENCE"
+
+[project.optional-dependencies]
+comments = [
+    "ruamel.yaml"
+]
+tests = [
+    "pytest",
+    "ruamel.yaml",
+    "mock"
+]
+
+[project.urls]
+Homepage = "https://github.com/simonfletcher-ln/confclasses"
+Issues = "https://github.com/simonfletcher-ln/confclasses/issues"
+
+[tool.setuptools]
+py-modules = [ "confclasses", "confclasses_comments" ]

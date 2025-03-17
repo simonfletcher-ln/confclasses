@@ -1,5 +1,7 @@
+from io import StringIO
 from confclasses import confclass, load_config, ConfclassesLoadingError, save_config
 import pytest
+import mock
 
 @pytest.fixture
 def test_config():
@@ -26,6 +28,25 @@ def test_config():
     
     a = TestConfig()
     return TestConfig
+
+@pytest.fixture
+def test_config_yaml():
+    return """nested:
+  field1: foo
+  field2: bar
+  hashed_field3:
+    test: nested
+    default1: 123
+field3: 42
+hashed_field1:
+- test
+- items
+hashed_field2:
+  key1: value1
+hashed_field4:
+  test: base
+  default1: 123
+"""
 
 
 def test_wrapper(test_config):
@@ -92,30 +113,31 @@ nested:
     assert conf.nested.field1 == "test"
     assert conf.nested.field2 == "bar"
 
-def test_save(test_config):
+def test_save(test_config, test_config_yaml):
     conf = test_config()
     load_config(conf, "")
-    assert save_config(conf) == """nested:
-  field1: foo
-  field2: bar
-  hashed_field3:
-    test: nested
-    default1: 123
-field3: 42
-hashed_field1:
-- test
-- items
-hashed_field2:
-  key1: value1
-hashed_field4:
-  test: base
-  default1: 123
-"""
+    assert save_config(conf) == test_config_yaml
+
+def test_save_fallback(test_config, test_config_yaml):
+    from confclasses_comments import save_config
+    conf = test_config()
+    load_config(conf, "")
+    stream = StringIO()
+    with mock.patch("ruamel.yaml.YAML") as myMock:
+        myMock.side_effect = ModuleNotFoundError()
+        save_config(conf, stream)
+    value = stream.getvalue()
+    assert value == test_config_yaml
 
 def test_save_comments(test_config):
+    from confclasses_comments import save_config
+
     conf = test_config()
     load_config(conf, "")
-    assert save_config(conf, True) == """
+    stream = StringIO()
+    save_config(conf, stream)
+    value = stream.getvalue()
+    assert value == """
 # === nested ===
 # type: NestedConfig
 nested:
