@@ -147,7 +147,7 @@ def from_dict(config: object, values: dict, crumbs: list=[]):
     # this is just for logging, doesn't serve any function
     for name, value in values.items():
         if name not in kwargs:
-            logger.info(f"unused config {".".join(crumbs + [name])} = {value}")
+            logger.info(f"unused config {'.'.join(crumbs + [name])} = {value}")
 
     config.__dataclass_init__(
         *config.__confclass_args__,

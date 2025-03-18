@@ -2,6 +2,7 @@
 requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
 
+
 [project]
 name = "confclasses"
 version = "0.1.2"
@@ -20,8 +21,10 @@ dependencies = [
     "PyYAML"
 ]
 
+
 [project.license]
 file = "LICENCE"
+
 
 [project.optional-dependencies]
 comments = [
@@ -33,9 +36,14 @@ tests = [
     "mock"
 ]
 
+
 [project.urls]
 Homepage = "https://github.com/simonfletcher-ln/confclasses"
 Issues = "https://github.com/simonfletcher-ln/confclasses/issues"
 
+
 [tool.setuptools]
-py-modules = [ "confclasses", "confclasses_comments" ]
+py-modules = [
+    "confclasses",
+    "confclasses_comments"
+]

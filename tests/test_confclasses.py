@@ -26,7 +26,6 @@ def test_config():
         hashed_field2: dict = {"key1": "value1"}
         hashed_field4: RepeatingConfig = RepeatingConfig(test="base")
     
-    a = TestConfig()
     return TestConfig
 
 @pytest.fixture
