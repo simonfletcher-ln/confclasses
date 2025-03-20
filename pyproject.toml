@@ -5,7 +5,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "confclasses"
-version = "0.1.2"
 authors = [
   { name="Simon Fletcher", email="simon.fletcher@lexisnexisrisk.com" },
 ]
@@ -18,23 +17,14 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-    "PyYAML"
+    "PyYAML",
+    "ruamel.yaml"
 ]
+dynamic = ["version"]
 
 
 [project.license]
 file = "LICENCE"
-
-
-[project.optional-dependencies]
-comments = [
-    "ruamel.yaml"
-]
-tests = [
-    "pytest",
-    "ruamel.yaml",
-    "mock"
-]
 
 
 [project.urls]
@@ -42,8 +32,5 @@ Homepage = "https://github.com/simonfletcher-ln/confclasses"
 Issues = "https://github.com/simonfletcher-ln/confclasses/issues"
 
 
-[tool.setuptools]
-py-modules = [
-    "confclasses",
-    "confclasses_comments"
-]
+[tool.setuptools.dynamic]
+version = { attr = "confclasses.__version__" }

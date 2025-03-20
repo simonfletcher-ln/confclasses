@@ -1,7 +1,7 @@
 from io import StringIO
 from confclasses import confclass, load_config, ConfclassesLoadingError, save_config
+from confclasses_comments import save_config as save_config_comments
 import pytest
-import mock
 
 @pytest.fixture
 def test_config():
@@ -47,6 +47,56 @@ hashed_field4:
   default1: 123
 """
 
+@pytest.fixture
+def test_config_yaml_comments():
+    return """
+nested:
+
+# ### field1 ###
+# type: String
+  field1: foo
+
+# ### field2 ###
+# type: String
+# test document for field 2
+  field2: bar
+
+  hashed_field3:
+
+# ### test ###
+# type: String
+    test: nested
+
+# ### default1 ###
+# type: Integer
+    default1: 123
+
+# ### field3 ###
+# type: Integer
+# test document for field 3
+field3: 42
+
+# ### hashed_field1 ###
+# type: list
+hashed_field1:
+- test
+- items
+
+# ### hashed_field2 ###
+# type: dict
+hashed_field2:
+  key1: value1
+
+hashed_field4:
+
+# ### test ###
+# type: String
+  test: base
+
+# ### default1 ###
+# type: Integer
+  default1: 123
+"""
 
 def test_wrapper(test_config):
     """ Other tests cover this but if this test fails it's obviously the wrapper that broke """
@@ -117,76 +167,10 @@ def test_save(test_config, test_config_yaml):
     load_config(conf, "")
     assert save_config(conf) == test_config_yaml
 
-def test_save_fallback(test_config, test_config_yaml):
-    from confclasses_comments import save_config
+def test_save_comments(test_config, test_config_yaml_comments):
     conf = test_config()
     load_config(conf, "")
     stream = StringIO()
-    with mock.patch("ruamel.yaml.YAML") as myMock:
-        myMock.side_effect = ModuleNotFoundError()
-        save_config(conf, stream)
-    value = stream.getvalue()
-    assert value == test_config_yaml
-
-def test_save_comments(test_config):
-    from confclasses_comments import save_config
-
-    conf = test_config()
-    load_config(conf, "")
-    stream = StringIO()
-    save_config(conf, stream)
-    value = stream.getvalue()
-    assert value == """
-# === nested ===
-# type: NestedConfig
-nested:
-
-  # === field1 ===
-  # type: String
-  field1: foo
-
-  # === field2 ===
-  # type: String
-  # test document for field 2
-  field2: bar
-
-  # === hashed_field3 ===
-  # type: RepeatingConfig
-  hashed_field3:
-
-    # === test ===
-    # type: String
-    test: nested
-
-    # === default1 ===
-    # type: Integer
-    default1: 123
-
-# === field3 ===
-# type: Integer
-# test document for field 3
-field3: 42
-
-# === hashed_field1 ===
-# type: list
-hashed_field1:
-- test
-- items
-
-# === hashed_field2 ===
-# type: dict
-hashed_field2:
-  key1: value1
-
-# === hashed_field4 ===
-# type: RepeatingConfig
-hashed_field4:
-
-  # === test ===
-  # type: String
-  test: base
-
-  # === default1 ===
-  # type: Integer
-  default1: 123
-"""
+    save_config_comments(conf, stream)
+    print(stream.getvalue())
+    assert stream.getvalue() == test_config_yaml_comments

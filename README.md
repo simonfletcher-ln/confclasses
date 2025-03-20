@@ -1,12 +1,10 @@
 # Confclasses
 
-Create dataclass style classes that can be used for configuration of a python tool. The idea is to handle loading/saving 
-the config from files while allowing simpler IDE usage with the config. We dont need 90% of the features in dataclasses, 
-so we make the api easier.
+Create dataclass-style classes that can be used for configuring a Python tool. The idea is to handle loading and saving the config from files while allowing simpler IDE usage with the config. We don't need 90% of the features in dataclasses, so we make the API easier.
 
+The module is designed to have a global config object that is instantiated at the start and then loaded dynamically later. Please see the common usage section for an example.
 
-The module is designed to have a global config object that is instantiated at the start and then loaded dynamically
-later. This is why the dataclass __init__ is pushed aside and we run it manually later.
+`confclasses_comments` is also shipped with this tool. It uses `ruamel.yaml` to add comments and `ast` to get the "docstring" of the annotations (fields) in the config classes.
 
 ## Common usage
 Create a config.py to store the config.
@@ -37,14 +35,32 @@ class ExampleConfig:
 config = ExampleConfig()
 ```
 
-Use it elsewhere in the project
+Loading it at the start
 ```python
+# main.py
 from confclasses import load_config
 from config import config
+from .example_module import example_function
 
 def main():
     with open('conf.yaml', 'r') as f:
         load_config(config, f.read())
     
+    example_function()
+```
+
+In the `example_module`
+```python
+# example_module.py
+from config import config
+
+def example_function():
     print(config.field3)
 ```
+
+## Planned changes
+| Feature                | Description                                                                         | Status             |
+|------------------------|-------------------------------------------------------------------------------------|--------------------|
+| XDG support            | Automatic detection of config files using XDG                                       | Planned            |
+| Sort out comments      | Either move `confclasses_comments` to its own repo or document clearer how it works | Open to discussion |
+| Standardize save_config| `confclasses` and `confclasses_comments` have different arguments, it can be better | Planned            |
