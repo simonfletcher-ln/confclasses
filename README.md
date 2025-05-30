@@ -58,9 +58,10 @@ def example_function():
     print(config.field3)
 ```
 
-## Planned changes
-| Feature                | Description                                                                         | Status             |
-|------------------------|-------------------------------------------------------------------------------------|--------------------|
-| XDG support            | Automatic detection of config files using XDG                                       | Planned            |
-| Sort out comments      | Either move `confclasses_comments` to its own repo or document clearer how it works | Open to discussion |
-| Standardize save_config| `confclasses` and `confclasses_comments` have different arguments, it can be better | Planned            |
+## Planned changes pre release
+- [ ] XDG support - Automatic detection of config files using XDG
+- [x] Standardize save_config between comments and not comments
+- [x] YAML Tag support
+- [x] Type checking
+- [ ] Tests in pipelines
+- [ ] Contribution guide

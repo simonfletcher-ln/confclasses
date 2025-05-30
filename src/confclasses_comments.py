@@ -2,8 +2,6 @@ import ast
 import dataclasses
 import functools
 import inspect
-from confclasses import is_confclass
-from ruamel.yaml import YAML, CommentedMap
 
 @functools.cache
 def get_docstrings(cls):
@@ -44,7 +42,7 @@ def add_comments(data, cls):
     docs = get_docstrings(cls)
     for field_info in dataclasses.fields(cls):
         # Deal with recursion first
-        if is_confclass(field_info.type):
+        if dataclasses.is_dataclass(field_info.type): # We have to use is_dataclass because circular imports, should be good enough
             add_comments(data[field_info.name], field_info.type)
             comment_text = "" # this is a simple way to force an empty new line
         else:
@@ -54,11 +52,3 @@ type: {TYPE_MAPPING.get(field_info.type, field_info.type.__name__)}
 {docs.get(field_info.name, "").strip()}"""
             
         data.yaml_set_comment_before_after_key(field_info.name, before=comment_text)
-
-
-def save_config(config, stream):
-    yaml = YAML()
-    yaml.default_flow_style = False
-    data = dataclasses.asdict(config, dict_factory=CommentedMap)
-    add_comments(data, type(config))
-    yaml.dump(data, stream)

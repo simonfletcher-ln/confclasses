@@ -1,6 +1,5 @@
 from io import StringIO
 from confclasses import confclass, load_config, ConfclassesLoadingError, save_config
-from confclasses_comments import save_config as save_config_comments
 import pytest
 
 @pytest.fixture
@@ -171,6 +170,5 @@ def test_save_comments(test_config, test_config_yaml_comments):
     conf = test_config()
     load_config(conf, "")
     stream = StringIO()
-    save_config_comments(conf, stream)
-    print(stream.getvalue())
+    save_config(conf, stream, comments=True)
     assert stream.getvalue() == test_config_yaml_comments
