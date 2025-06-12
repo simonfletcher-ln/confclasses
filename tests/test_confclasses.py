@@ -1,5 +1,5 @@
 from io import StringIO
-from confclasses import confclass, load_config, ConfclassesLoadingError, save_config
+from confclasses import confclass, load_config, ConfclassesAttributeError, save_config, ConfclassesSetupError
 from confclasses_comments import save_config as save_config_comments
 import pytest
 
@@ -7,7 +7,7 @@ import pytest
 def test_config():
     @confclass
     class RepeatingConfig:
-        test: str
+        test: str = "test"
         default1: int = 123
         
     @confclass
@@ -105,9 +105,9 @@ def test_wrapper(test_config):
 def test_error_pre_load(test_config):
     """ We want to raise exceptions if config is accessed before its loaded """
     conf = test_config()
-    with pytest.raises(ConfclassesLoadingError):
+    with pytest.raises(ConfclassesAttributeError):
         conf.field3
-    with pytest.raises(ConfclassesLoadingError):
+    with pytest.raises(ConfclassesAttributeError):
         conf.nested.field1
 
 def test_unsafe(test_config):
@@ -174,3 +174,55 @@ def test_save_comments(test_config, test_config_yaml_comments):
     save_config_comments(conf, stream)
     print(stream.getvalue())
     assert stream.getvalue() == test_config_yaml_comments
+
+def test_lists():
+    @confclass
+    class ListConfigItem:
+        name: str
+
+    @confclass
+    class ListConfig:
+        items: list[ListConfigItem] = []
+
+    conf = ListConfig()
+    load_config(conf, """items:
+  - name: test1
+  - name: test2
+""")
+    assert len(conf.items) == 2
+    assert conf.items[0].name == "test1"
+    assert conf.items[1].name == "test2"
+
+def test_scalar():
+    @confclass(if_scalar="test")
+    class ScalarConfig:
+        test: str
+        other: int = 42
+
+    conf = ScalarConfig()
+    load_config(conf, "test: value")
+    assert conf.test == "value"
+    assert conf.other == 42
+
+def test_scalar_without_defaults():
+    with pytest.raises(ConfclassesSetupError):
+        @confclass(if_scalar="test")
+        class ScalarConfig:
+            test: str
+            other: int
+
+def test_scalar_default():
+    @confclass(if_scalar="test")
+    class ScalarConfig:
+        test: str
+        other: int = 42
+    
+    @confclass
+    class RootConfig:
+        scalar: ScalarConfig = "testing"
+
+    conf = RootConfig()
+    load_config(conf, "")
+    assert conf.scalar.test == "testing"
+    assert conf.scalar.other == 42
+    
