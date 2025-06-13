@@ -59,8 +59,10 @@ def example_function():
 ```
 
 ## Planned changes
-| Feature                | Description                                                                         | Status             |
-|------------------------|-------------------------------------------------------------------------------------|--------------------|
-| XDG support            | Automatic detection of config files using XDG                                       | Planned            |
-| Sort out comments      | Either move `confclasses_comments` to its own repo or document clearer how it works | Open to discussion |
-| Standardize save_config| `confclasses` and `confclasses_comments` have different arguments, it can be better | Planned            |
+- [ ] XDG support
+- [ ] Move comments code into base file
+- [ ] Type checking
+- [ ] Tests in pipelines
+- [ ] Contribution guide
+- [ ] Scalars mapped to confclass
+- [ ] remove PyYAML
