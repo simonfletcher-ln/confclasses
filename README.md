@@ -60,9 +60,9 @@ def example_function():
 
 ## Planned changes
 - [ ] XDG support
-- [ ] Move comments code into base file
+- [x] Move comments code into base file
 - [ ] Type checking
 - [ ] Tests in pipelines
 - [ ] Contribution guide
-- [ ] Scalars mapped to confclass
-- [ ] remove PyYAML
+- [x] Scalars mapped to confclass
+- [x] remove PyYAML

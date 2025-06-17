@@ -1,7 +1,20 @@
 from io import StringIO
-from confclasses import confclass, load_config, ConfclassesAttributeError, save_config, ConfclassesSetupError
-from confclasses_comments import save_config as save_config_comments
 import pytest
+
+from confclasses import confclass, load, save
+from confclasses.exceptions import ConfclassesLoadingError, ConfclassesSetupError, ConfclassesAttributeError, ConfclassesMissingValueError
+
+# These are the old interfaces we're deprecating but they make tests easier
+# so we're keeping them around for tests
+
+def load_config(config, yaml):
+    stream = StringIO(yaml)
+    return load(config, stream)
+
+def save_config(config):
+    stream = StringIO()
+    save(config, stream)
+    return stream.getvalue()
 
 @pytest.fixture
 def test_config():
@@ -105,25 +118,13 @@ def test_wrapper(test_config):
 def test_error_pre_load(test_config):
     """ We want to raise exceptions if config is accessed before its loaded """
     conf = test_config()
+
     with pytest.raises(ConfclassesAttributeError):
-        conf.field3
+        hasattr(conf, "field3")
+    with pytest.raises(ConfclassesAttributeError):
+        getattr(conf, "field3")
     with pytest.raises(ConfclassesAttributeError):
         conf.nested.field1
-
-def test_unsafe(test_config):
-    """ in the case safe=False, we do the opposit of the above test """
-    @confclass(safe=False)
-    class UnsafeTestConfig():
-        nested_safe: test_config # type: ignore
-        field: int = 22
-    
-    conf = UnsafeTestConfig()
-    _ = conf.field
-
-    with pytest.raises(AttributeError):
-        _ = conf.nested_safe.field3
-    
-    load_config(conf, "")
 
 def test_hashing(test_config):
     """ Make sure hashed fields do not polute """
@@ -171,8 +172,7 @@ def test_save_comments(test_config, test_config_yaml_comments):
     conf = test_config()
     load_config(conf, "")
     stream = StringIO()
-    save_config_comments(conf, stream)
-    print(stream.getvalue())
+    save(conf, stream, comments=True)
     assert stream.getvalue() == test_config_yaml_comments
 
 def test_lists():
@@ -226,3 +226,29 @@ def test_scalar_default():
     assert conf.scalar.test == "testing"
     assert conf.scalar.other == 42
     
+def test_missing_defaults():
+    @confclass
+    class MissingDefault:
+        test: str
+    
+    conf = MissingDefault()
+    with pytest.raises(ConfclassesMissingValueError):
+        load_config(conf, "")
+
+def test_loading_error():
+    @confclass
+    class TestConfig:
+        test: str = "test"
+
+    conf = TestConfig()
+    # Test that we get a loading error if we try to load a string
+    with pytest.raises(ConfclassesLoadingError):
+        load_config(conf, "hello")
+
+    # Test that we get a loading error if we try to load a list
+    with pytest.raises(ConfclassesLoadingError):
+        load_config(conf, "[]")
+
+    # Test invalid yaml raises a loading error
+    with pytest.raises(ConfclassesLoadingError):
+        load_config(conf, "invalid: yaml: here")
