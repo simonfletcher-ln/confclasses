@@ -9,14 +9,15 @@ import functools
 import inspect
 from confclasses.exceptions import ConfclassesLoadingError, ConfclassesSetupError, ConfclassesAttributeError, ConfclassesMissingValueError
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     'configclass',
     'load_config',
     'save_config',
     'is_confclass',
-    'fields'
+    'fields',
+    'replace'
 ]
 
 _LOADED = "__CONFIGCLASSES_LOADED__"
@@ -26,6 +27,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 fields = dataclasses.fields
+
+def replace(obj, /, **changes):
+    if not is_confclass(obj):
+        raise ConfclassesSetupError(f"replace can only be used on confclasses, not {type(obj)}")
+    new_obj = dataclasses.replace(obj, **changes)
+    new_obj.__dataclass_init__(
+        *new_obj.__confclass_args__,
+        **new_obj.__confclass_kwargs__
+    )
+    setattr(new_obj, _LOADED, True)
+    return new_obj
 
 def confclass(cls=None, /, *, if_scalar=None):
     """
