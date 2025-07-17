@@ -1,7 +1,6 @@
 import dataclasses
 import io
 from ruamel.yaml import YAML, CommentedMap
-import inspect
 from typing import get_origin, get_args
 from warnings import deprecated
 import ast
