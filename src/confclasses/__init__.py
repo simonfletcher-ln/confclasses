@@ -320,11 +320,10 @@ def object_is_type(obj: object, t: type) -> bool:
     if isinstance(obj, t):
         return True
     
-    ruamel_types = getattr(t, "_yaml_tag", None)
-    if ruamel_types is not None and isinstance(obj, t):
+    yaml_tag = getattr(obj, "_yaml_tag", None)
+    if yaml_tag is not None and isinstance(yaml_tag, t):
         return True
-    if hasattr(obj, "__class__") and hasattr(t, "__name__"):
-        return obj.__class__.__name__ == t.__name__
+    
     return False
 
 
