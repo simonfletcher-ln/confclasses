@@ -29,6 +29,18 @@ logger = logging.getLogger(__name__)
 fields = dataclasses.fields
 
 def replace(obj, /, **changes):
+    """
+    Wrapper around dataclassses replace, but marks the object as loaded.
+
+    Args:
+        obj: The confclass instance to be replaced.
+        **changes: Field names and values to update in the new instance.
+    Raises:
+        ConfclassesSetupError: If `obj` is not a confclass.
+    Returns:
+        A new confclass instance with the specified changes applied.
+    """
+    
     if not is_confclass(obj):
         raise ConfclassesSetupError(f"replace can only be used on confclasses, not {type(obj)}")
     new_obj = dataclasses.replace(obj, **changes)
@@ -258,7 +270,7 @@ def from_dict(config: object, values: dict | str, crumbs: list=None):
                     if field.name in values:
                         for i, item in enumerate(values[field.name]):
                             values[field.name][i] = item
-                            if obj_type is not type(values[field.name][i]):
+                            if not object_is_type(values[field.name][i], obj_type):
                                 raise ConfclassesLoadingError(f"Invalid type in {'.'.join(crumbs + [field.name, str(i)])} for {field.name}, expected {obj_type} got {type(values[field.name][i])}")
                         kwargs[field.name] = values[field.name]
                         continue
@@ -271,7 +283,7 @@ def from_dict(config: object, values: dict | str, crumbs: list=None):
             
             # for anything else, we validate the type and assign the value
             if field.name in values:
-                if field.type is not type(values[field.name]):
+                if not object_is_type(values[field.name], field.type):
                     raise ConfclassesLoadingError(f"Invalid type in {'.'.join(crumbs + [field.name])} for {field.name}, expected {field.type} got {type(values[field.name])}")
                 
                 kwargs[field.name] = values[field.name]
@@ -295,6 +307,25 @@ def from_dict(config: object, values: dict | str, crumbs: list=None):
         **kwargs
     )
     setattr(config, _LOADED, True)
+
+
+def object_is_type(obj: object, t: type) -> bool:
+    """
+    Checks if obj is of type t, this takes into account the CommentedBase classes from ruamel
+    """
+    origin = get_origin(t)
+    if origin is not None:
+        t = origin
+    
+    if isinstance(obj, t):
+        return True
+    
+    ruamel_types = getattr(t, "_yaml_tag", None)
+    if ruamel_types is not None and isinstance(obj, t):
+        return True
+    if hasattr(obj, "__class__") and hasattr(t, "__name__"):
+        return obj.__class__.__name__ == t.__name__
+    return False
 
 
 @functools.cache
