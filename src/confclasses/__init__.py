@@ -10,15 +10,6 @@ from confclasses.exceptions import ConfclassesLoadingError, ConfclassesSetupErro
 
 __version__ = "0.3.1"
 
-__all__ = [
-    'configclass',
-    'load_config',
-    'save_config',
-    'is_confclass',
-    'fields',
-    'replace'
-]
-
 _LOADED = "__CONFIGCLASSES_LOADED__"
 _SCALAR = "__CONFIGCLASSES_SCALAR__"
 
