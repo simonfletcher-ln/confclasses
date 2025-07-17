@@ -9,7 +9,7 @@ import functools
 import inspect
 from confclasses.exceptions import ConfclassesLoadingError, ConfclassesSetupError, ConfclassesAttributeError, ConfclassesMissingValueError
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 __all__ = [
     'configclass',
