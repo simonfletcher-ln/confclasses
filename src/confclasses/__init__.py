@@ -275,7 +275,8 @@ def from_dict(config: object, values: dict | str, crumbs: list=None):
             # Check for missing required fields
             if field.name not in values and field.default is dataclasses.MISSING and field.default_factory is dataclasses.MISSING:
                 raise ConfclassesMissingValueError(
-                    f"Missing required config field {'.'.join(crumbs + [field.name])}"
+                    f"Missing required config field {'.'.join(crumbs + [field.name])}",
+                    missing = crumbs + [field.name]
                 )
             
             # for anything else, we validate the type and assign the value
