@@ -8,7 +8,7 @@ import functools
 import inspect
 from confclasses.exceptions import ConfclassesLoadingError, ConfclassesSetupError, ConfclassesAttributeError, ConfclassesMissingValueError
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 _LOADED = "__CONFIGCLASSES_LOADED__"
 _SCALAR = "__CONFIGCLASSES_SCALAR__"
