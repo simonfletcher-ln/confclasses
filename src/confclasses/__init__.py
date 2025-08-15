@@ -8,15 +8,22 @@ import functools
 import inspect
 from confclasses.exceptions import ConfclassesLoadingError, ConfclassesSetupError, ConfclassesAttributeError, ConfclassesMissingValueError
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 _LOADED = "__CONFIGCLASSES_LOADED__"
 _SCALAR = "__CONFIGCLASSES_SCALAR__"
+_UNUSED = "__CONFIGCLASSES_UNUSED__"
 
 import logging
 logger = logging.getLogger(__name__)
 
 fields = dataclasses.fields
+
+def unused(config):
+    """
+    Returns a dictionary of all values in the config that were not used to populate the config.
+    """
+    return getattr(config, _UNUSED, {})
 
 def replace(obj, /, **changes):
     """
@@ -268,7 +275,8 @@ def from_dict(config: object, values: dict | str, crumbs: list=None):
             # Check for missing required fields
             if field.name not in values and field.default is dataclasses.MISSING and field.default_factory is dataclasses.MISSING:
                 raise ConfclassesMissingValueError(
-                    f"Missing required config field {'.'.join(crumbs + [field.name])}"
+                    f"Missing required config field {'.'.join(crumbs + [field.name])}",
+                    missing = crumbs + [field.name]
                 )
             
             # for anything else, we validate the type and assign the value
@@ -278,11 +286,8 @@ def from_dict(config: object, values: dict | str, crumbs: list=None):
                 
                 kwargs[field.name] = values[field.name]
 
-        # this is just for logging, doesn't serve any function
-        for name, value in values.items():
-            if name not in kwargs:
-                logger.info(f"unused config {'.'.join(crumbs + [name])} = {value}")
-    
+        setattr(config, _UNUSED, {k: values[k] for k in values.keys() - kwargs.keys()})
+
     elif isinstance(values, str):
         if hasattr(config, _SCALAR):
             kwargs[getattr(config, _SCALAR)] = values
